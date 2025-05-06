@@ -1,0 +1,130 @@
+<div class="container">
+  <!-- Upload Section -->
+  <div class="upload-section">
+    <div class="upload-card">
+      <h2>Ship Images Upload</h2>
+      <button 
+        nz-button 
+        nzType="primary"
+        [nzSize]="'large'"
+        [nzLoading]="uploading"
+        (click)="uploadInput.click()"
+        [disabled]="uploading"
+        class="upload-button"
+      >
+        <i nz-icon nzType="upload"></i>
+        <span>Upload Images ({{ fileList.length ? fileList.length + ' selected' : 'Click to select' }})</span>
+      </button>
+      <input
+        #uploadInput
+        type="file"
+        style="display: none"
+        multiple
+        accept="image/*"
+        (change)="handleUpload($event)"
+      >
+
+      <!-- Upload Status -->
+      <div class="status-section" *ngIf="uploadStatus.status !== 'pending'">
+        <h3>Upload Status</h3>
+        <div class="batch-info" *ngIf="uploadStatus.status === 'uploading'">
+          <p>Uploading Batch: {{ uploadStatus.currentBatch }}/{{ uploadStatus.totalBatches }}</p>
+        </div>
+        <nz-progress
+          [nzPercent]="uploadStatus.progress"
+          [nzStatus]="uploadStatus.status === 'error' ? 'exception' : 'active'"
+          [nzStrokeWidth]="8"
+        ></nz-progress>
+        
+        <div class="status-info">
+          <p>Status: {{ uploadStatus.status | titlecase }}</p>
+          <p *ngIf="uploadStatus.status === 'processing' || uploadStatus.status === 'uploading'">
+            Processed: {{ uploadStatus.processedFiles }} / {{ uploadStatus.totalFiles }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Selected Files Preview -->
+      <div class="files-preview" *ngIf="fileList.length > 0">
+        <div class="files-header">
+          <h3>Selected Images ({{ fileList.length }})</h3>
+          <button 
+            nz-button 
+            nzType="primary" 
+            [nzLoading]="uploading" 
+            (click)="uploadFiles()"
+            [disabled]="uploading"
+            class="submit-button"
+          >
+            Start Upload
+          </button>
+        </div>
+        <div class="file-list">
+          <div *ngFor="let file of fileList" class="file-item">
+            <span class="file-name">{{ file.name }}</span>
+            <button 
+              nz-button 
+              nzType="text" 
+              nzDanger 
+              (click)="removeFile(file)"
+              [disabled]="uploading"
+            >
+              <i nz-icon nzType="delete"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Match Button -->
+  <div class="match-section" *ngIf="uploadStatus.status === 'completed'">
+    <button
+      nz-button
+      nzType="primary"
+      [nzSize]="'large'"
+      (click)="matchImages()"
+      [disabled]="!batchId || uploading"
+      [nzLoading]="uploading"
+      class="match-button"
+    >
+      <i nz-icon nzType="radar-chart"></i>
+      {{ uploading ? "Processing Matches..." : "Match Images" }}
+    </button>
+  </div>
+
+  <!-- Sections Grid -->
+  <div class="sections-grid">
+    <div *ngFor="let section of shipData" class="section-card">
+      <nz-card [nzTitle]="section.sectionName">
+        <div class="image-container">
+          <div class="reference-images">
+            <h4>Reference Images</h4>
+            <div class="image-scroll">
+              <img 
+                *ngFor="let url of section.downloadImageLinks" 
+                [src]="url" 
+                [alt]="section.sectionName"
+                class="reference-img"
+              />
+            </div>
+          </div>
+          
+          <div class="matched-image">
+            <h4>Matched Image</h4>
+            <div class="match-result" *ngIf="section.matchedUrl">
+              <img [src]="section.matchedUrl" [alt]="section.sectionName" />
+              <div class="match-percentage" [class.high-match]="section.matchPercentage >= 80">
+                {{ section.matchPercentage }}% Match
+              </div>
+              
+            </div>
+            <div class="no-match" *ngIf="!section.matchedUrl">
+              No image matched yet
+            </div>
+          </div>
+        </div>
+      </nz-card>
+    </div>
+  </div>
+</div>

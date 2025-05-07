@@ -1,6 +1,6 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HttpClient, HttpEventType } from '@angular/common/http';
+import { HttpClient, HttpEventType, HttpParams } from '@angular/common/http';
 import { NzUploadModule, NzUploadFile } from 'ng-zorro-antd/upload';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzGridModule } from 'ng-zorro-antd/grid';
@@ -52,10 +52,12 @@ interface BatchResponse {
   styleUrl: './app.component.scss',
 })
 export class AppComponent {
-  private apiUrl = 'http://65.109.13.253:8000';
+  // private apiUrl = 'http://65.109.13.253:8000';
+   private apiUrl = 'https://netsumimage.meancloud.in'
   private readonly BATCH_SIZE = 100; // Size of each upload batch
   fileList: NzUploadFile[] = [];
   uploading = false;
+  selectLoading = false;
   batchId: string | null = null;
   uploadStatus: UploadStatus = {
     totalFiles: 0,
@@ -72,35 +74,69 @@ export class AppComponent {
     matchPercentage: 0,
   }));
 
-  constructor(private http: HttpClient, private message: NzMessageService) {}
+   @ViewChild('uploadInput') uploadInput!: ElementRef;
+  @ViewChild('uploadButton') uploadButton!: ElementRef;
 
-  handleUpload(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const files = input.files;
+  constructor(private http: HttpClient, private message: NzMessageService, private cdr: ChangeDetectorRef) {}
 
-    if (!files) return;
 
-    Array.from(files).forEach((file) => {
-      const nzFile: NzUploadFile = {
-        uid: `${Date.now()}-${this.fileList.length}`,
-        name: file.name,
-        size: file.size,
-        type: file.type,
-        originFileObj: file,
-      };
 
+
+handleUpload(event: Event): void {
+  this.selectLoading = true;
+  this.cdr.detectChanges(); // trigger UI update
+
+  const input = event.target as HTMLInputElement;
+  const files = input.files;
+
+  if (!files) {
+    this.selectLoading = false;
+    this.cdr.detectChanges();
+    return;
+  }
+
+  // Use setTimeout to let the loader render
+  setTimeout(() => {
+    const selectedFiles = Array.from(files);
+    const numberOfFiles = selectedFiles.length;
+    let processedCount = 0;
+
+    selectedFiles.forEach((file, index) => {
       if (file.type?.startsWith('image/')) {
+        const nzFile: NzUploadFile = {
+          uid: `${Date.now()}-${this.fileList.length + index}`,
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          originFileObj: file,
+        };
         this.fileList = [...this.fileList, nzFile];
       } else {
-        this.message.error('You can only upload image files!');
+        this.message.error(`"${file.name}" is not an image file`);
+      }
+
+      processedCount++;
+
+      if (processedCount === numberOfFiles) {
+        if (this.fileList.length > 1000) {
+          this.message.warning('Maximum 1000 images can be uploaded at once');
+          this.fileList = this.fileList.slice(0, 1000);
+        }
+
+        this.selectLoading = false;
+        this.cdr.detectChanges(); // Final change detection
       }
     });
+  }, 0);
+}
 
-    if (this.fileList.length > 1000) {
-      this.message.warning('Maximum 1000 images can be uploaded at once');
-      this.fileList = this.fileList.slice(0, 1000);
-    }
-  }
+
+
+  
+  
+
+
+
 
   private uploadBatch(
     files: NzUploadFile[],
@@ -155,7 +191,7 @@ export class AppComponent {
           return null;
         }),
         catchError((error) => {
-          console.error(`Batch ${batchNumber + 1} upload error:`, error);
+          this.message.error(`Batch ${batchNumber + 1} upload error:`, error);
           return of(null);
         })
       );
@@ -207,9 +243,9 @@ export class AppComponent {
   }
 
   private handleUploadError(): void {
-    // this.message.error('Upload failed');
+     this.message.error('Upload failed');
     this.uploading = false;
-    this.uploadStatus.status = 'error';
+    this.uploadStatus.status = 'processing';
   }
 
   startPolling(): void {
@@ -233,7 +269,7 @@ export class AppComponent {
         }
       },
       error: (error) => {
-        console.error('Status check error:', error);
+        
         this.message.error('Failed to check processing status');
       },
     });
@@ -255,45 +291,44 @@ export class AppComponent {
         question: section.sectionName,
         sample_image_urls: section.downloadImageLinks,
         min_similarity: 0.5,
-        top_k: 1,
+        top_k: 3,
       };
 
       this.http
-        .post(`${this.apiUrl}/query/`, params, {
-          observe: 'response',
-          responseType: 'blob',
-        })
-        .subscribe({
-          next: (res) => {
-            const headers = res.headers;
-            const bestMatchScore = parseFloat(
-              headers.get('x-best-match-score') || '0'
-            );
-            const queryTime = headers.get('x-query-time-ms');
-            const resultCount = headers.get('x-result-count');
-            const results = headers.get('x-results');
+        .post(`${this.apiUrl}/query/`, params)
+      
+
+         .subscribe({
+          next: (res: any) => {
+            console.log('response', res);
             
-            console.log('Match Results:', {
-              bestMatchScore,
-              queryTime,
-              resultCount,
-              results
-            });
-            
-            if (res.body) {
-              section.matchedUrl = URL.createObjectURL(res.body);
-              // Convert score to percentage and round to 2 decimal places
-              section.matchPercentage = Math.round(bestMatchScore * 100 * 100) / 100;
+
+            // Ensure `results` exists and is an array
+           
+            if (res?.images?.results?.length) {
+                const updatedResults = res.images.results.map((img: any) => ({
+                ...img,
+                similarity_score: Math.round(img.similarity_score * 100)
+              }));
+
+              section.matchArr.push(...updatedResults);
             }
+
+
+            
+
+            // section.matchedUrl =res?.image?.data
+            // section.matchPercentage = Math.round(res?.best_match_score * 100 ) ;
+           
             
             completedSections++;
             if (completedSections === totalSections) {
               this.uploading = false;
               this.message.success('Image matching completed');
             }
-          },
+          },          
           error: (err) => {
-            console.error('Match error:', err);
+            
             this.message.error(
               `Matching failed for section: ${section.sectionName}`
             );
@@ -304,9 +339,26 @@ export class AppComponent {
           },
         });
     });
+
+    
   }
 
   removeFile(file: NzUploadFile): void {
     this.fileList = this.fileList.filter((item) => item !== file);
   }
-}
+
+
+  ngOnDestroy(): void {
+    // remove images with batch
+    const params = {
+      params: new HttpParams().set('batch_id', this.batchId || '')
+    };
+    this.http.get(`${this.apiUrl}/delete_batch/`, params).subscribe({
+      next: (response) => {
+        
+      },
+      error: (error) => { 
+        
+      }
+    });
+  }}

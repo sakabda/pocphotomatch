@@ -4,10 +4,11 @@
     <div class="upload-card">
       <h2>Ship Images Upload</h2>
       <button 
+       #uploadButton
         nz-button 
         nzType="primary"
         [nzSize]="'large'"
-        [nzLoading]="uploading"
+        [nzLoading]="selectLoading"
         (click)="uploadInput.click()"
         [disabled]="uploading"
         class="upload-button"
@@ -32,7 +33,7 @@
         </div>
         <nz-progress
           [nzPercent]="uploadStatus.progress"
-          [nzStatus]="uploadStatus.status === 'error' ? 'exception' : 'active'"
+         
           [nzStrokeWidth]="8"
         ></nz-progress>
         
@@ -112,19 +113,21 @@
           
           <div class="matched-image">
             <h4>Matched Image</h4>
-            <div class="match-result" *ngIf="section.matchedUrl">
-              <img [src]="section.matchedUrl" [alt]="section.sectionName" />
-              <div class="match-percentage" [class.high-match]="section.matchPercentage >= 80">
-                {{ section.matchPercentage }}% Match
-              </div>
+            <div  class="match-result"  *ngIf="section.matchArr.length > 0" style="display: flex; flex-wrap: wrap; gap: 2px;">
+              <div *ngFor="let match of section.matchArr">
               
+                <img [src]="match.data"  />
+                <div class="match-percentage" [class.high-match]="match.similarity_score >= 80">
+                  {{ match.similarity_score  }}% Match
+                </div>
+              </div>
             </div>
-            <div class="no-match" *ngIf="!section.matchedUrl">
-              No image matched yet
+            <div class="no-match" *ngIf="section.matchArr.length === 0">
+              No image matched for this section.
             </div>
           </div>
         </div>
       </nz-card>
-    </div>
+    </div>  
   </div>
 </div>

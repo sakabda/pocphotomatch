@@ -3,9 +3,9 @@
   <div class="upload-section">
     <div class="upload-card">
       <h2>Ship Images Upload</h2>
-      <button 
-       #uploadButton
-        nz-button 
+      <button
+        #uploadButton
+        nz-button
         nzType="primary"
         [nzSize]="'large'"
         [nzLoading]="selectLoading"
@@ -14,7 +14,11 @@
         class="upload-button"
       >
         <i nz-icon nzType="upload"></i>
-        <span>Upload Images ({{ fileList.length ? fileList.length + ' selected' : 'Click to select' }})</span>
+        <span
+          >Upload Images ({{
+            fileList.length ? fileList.length + " selected" : "Click to select"
+          }})</span
+        >
       </button>
       <input
         #uploadInput
@@ -23,24 +27,33 @@
         multiple
         accept="image/*"
         (change)="handleUpload($event)"
-      >
+      />
 
       <!-- Upload Status -->
       <div class="status-section" *ngIf="uploadStatus.status !== 'pending'">
         <h3>Upload Status</h3>
         <div class="batch-info" *ngIf="uploadStatus.status === 'uploading'">
-          <p>Uploading Batch: {{ uploadStatus.currentBatch }}/{{ uploadStatus.totalBatches }}</p>
+          <p>
+            Uploading Batch: {{ uploadStatus.currentBatch }}/{{
+              uploadStatus.totalBatches
+            }}
+          </p>
         </div>
         <nz-progress
           [nzPercent]="uploadStatus.progress"
-         
           [nzStrokeWidth]="8"
         ></nz-progress>
-        
+
         <div class="status-info">
           <p>Status: {{ uploadStatus.status | titlecase }}</p>
-          <p *ngIf="uploadStatus.status === 'processing' || uploadStatus.status === 'uploading'">
-            Processed: {{ uploadStatus.processedFiles }} / {{ uploadStatus.totalFiles }}
+          <p
+            *ngIf="
+              uploadStatus.status === 'processing' ||
+              uploadStatus.status === 'uploading'
+            "
+          >
+            Processed: {{ uploadStatus.processedFiles }} /
+            {{ uploadStatus.totalFiles }}
           </p>
         </div>
       </div>
@@ -49,12 +62,12 @@
       <div class="files-preview" *ngIf="fileList.length > 0">
         <div class="files-header">
           <h3>Selected Images ({{ fileList.length }})</h3>
-          <button 
-            nz-button 
-            nzType="primary" 
-            [nzLoading]="uploading" 
+          <button
+            nz-button
+            nzType="primary"
+            [nzLoading]="uploading"
             (click)="uploadFiles()"
-            [disabled]="uploading"
+            [disabled]="uploading || uploadStatus.status === 'processing'"
             class="submit-button"
           >
             Start Upload
@@ -63,10 +76,10 @@
         <div class="file-list">
           <div *ngFor="let file of fileList" class="file-item">
             <span class="file-name">{{ file.name }}</span>
-            <button 
-              nz-button 
-              nzType="text" 
-              nzDanger 
+            <button
+              nz-button
+              nzType="text"
+              nzDanger
               (click)="removeFile(file)"
               [disabled]="uploading"
             >
@@ -102,23 +115,31 @@
           <div class="reference-images">
             <h4>Reference Images</h4>
             <div class="image-scroll">
-              <img 
-                *ngFor="let url of section.downloadImageLinks" 
-                [src]="url" 
+              <img
+                nz-image
+                *ngFor="let url of section.downloadImageLinks"
+                [nzSrc]="url"
                 [alt]="section.sectionName"
                 class="reference-img"
               />
             </div>
           </div>
-          
+
           <div class="matched-image">
             <h4>Matched Image</h4>
-            <div  class="match-result"  *ngIf="section.matchArr.length > 0" style="display: flex; flex-wrap: wrap; gap: 2px;">
-              <div *ngFor="let match of section.matchArr">
-              
-                <img [src]="match.data"  />
-                <div class="match-percentage" [class.high-match]="match.similarity_score >= 80">
-                  {{ match.similarity_score  }}% Match
+            <div class="image-grid" *ngIf="section.matchArr.length > 0">
+              <div *ngFor="let match of section.matchArr" class="match-item">
+                <img
+                  nz-image
+                  [nzSrc]="match.data"
+                  [alt]="section.sectionName"
+                  class="matched-img"
+                />
+                <div
+                  class="match-percentage"
+                  [class.high-match]="match.similarity_score >= 80"
+                >
+                  {{ match.similarity_score }}% Match
                 </div>
               </div>
             </div>
@@ -128,6 +149,6 @@
           </div>
         </div>
       </nz-card>
-    </div>  
+    </div>
   </div>
 </div>

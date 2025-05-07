@@ -9,6 +9,7 @@ import { NzMessageModule, NzMessageService } from 'ng-zorro-antd/message';
 import { NzProgressModule } from 'ng-zorro-antd/progress';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzImageModule } from 'ng-zorro-antd/image';
 import {
   Observable,
   Observer,
@@ -47,6 +48,7 @@ interface BatchResponse {
     NzProgressModule,
     NzSpinModule,
     NzIconModule,
+    NzImageModule,
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
@@ -243,7 +245,7 @@ handleUpload(event: Event): void {
   }
 
   private handleUploadError(): void {
-     this.message.error('Upload failed');
+    //  this.message.error('Upload failed');
     this.uploading = false;
     this.uploadStatus.status = 'processing';
   }

@@ -46,7 +46,7 @@
 
         <div class="status-info">
           <p>Status: {{ uploadStatus.status | titlecase }}</p>
-          <p
+          <!-- <p
             *ngIf="
               uploadStatus.status === 'processing' ||
               uploadStatus.status === 'uploading'
@@ -54,7 +54,7 @@
           >
             Processed: {{ uploadStatus.processedFiles }} /
             {{ uploadStatus.totalFiles }}
-          </p>
+          </p> -->
         </div>
       </div>
 

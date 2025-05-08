@@ -70,6 +70,7 @@ export class AppComponent {
     totalBatches: 0,
   };
   pollingSubscription?: Subscription;
+  batchIds: string[] = [];
 
   shipData = shipData.map((section) => ({
     ...section,
@@ -171,6 +172,7 @@ handleUpload(event: Event): void {
       })
       .pipe(
         map((event) => {
+          console.log('event', event);
           if (event.type === HttpEventType.UploadProgress && event.total) {
             const batchProgress = Math.round(
               (100 * event.loaded) / event.total
@@ -182,8 +184,10 @@ handleUpload(event: Event): void {
           } else if (event.type === HttpEventType.Response) {
             if (event.body) {
               const response = event.body as BatchResponse;
+              this.batchIds.push(response.batch_id);
               if (!this.batchId && response.batch_id) {
                 this.batchId = response.batch_id;
+                
               }
               this.uploadStatus.processedFiles += files.length;
               this.uploadStatus.currentBatch = batchNumber + 1;
@@ -277,73 +281,181 @@ handleUpload(event: Event): void {
     });
   }
 
-  matchImages(): void {
-    if (!this.batchId) {
-      this.message.warning('Please upload images first');
-      return;
-    }
+  // matchImages(): void {
+  //   if (!this.batchId) {
+  //     this.message.warning('Please upload images first');
+  //     return;
+  //   }
 
-    this.uploading = true;
-    const totalSections = this.shipData.length;
-    let completedSections = 0;
+  //   this.uploading = true;
+  //   const totalSections = this.shipData.length;
+  //   let completedSections = 0;
 
-    this.shipData.forEach((section) => {
-      const params = {
-        batch_id: this.batchId,
-        question: section.sectionName,
-        sample_image_urls: section.downloadImageLinks,
-        min_similarity: 0.5,
-        top_k: 3,
-      };
+  //   this.shipData.forEach((section) => {
+  //     const params = {
+  //       batch_id: this.batchId,
+  //       question: section.sectionName,
+  //       sample_image_urls: section.downloadImageLinks,
+  //       min_similarity: 0.5,
+  //       top_k: 3,
+  //     };
 
-      this.http
-        .post(`${this.apiUrl}/query/`, params)
+  //     this.http
+  //       .post(`${this.apiUrl}/query/`, params)
       
 
-         .subscribe({
-          next: (res: any) => {
-            console.log('response', res);
+  //        .subscribe({
+  //         next: (res: any) => {
+  //           console.log('response', res);
             
 
-            // Ensure `results` exists and is an array
+  //           // Ensure `results` exists and is an array
            
-            if (res?.images?.results?.length) {
-                const updatedResults = res.images.results.map((img: any) => ({
-                ...img,
-                similarity_score: Math.round(img.similarity_score * 100)
-              }));
+  //           if (res?.images?.results?.length) {
+  //               const updatedResults = res.images.results.map((img: any) => ({
+  //               ...img,
+  //               similarity_score: Math.round(img.similarity_score * 100)
+  //             }));
 
-              section.matchArr.push(...updatedResults);
-            }
+  //             section.matchArr.push(...updatedResults);
+  //           }
 
 
             
 
-            // section.matchedUrl =res?.image?.data
-            // section.matchPercentage = Math.round(res?.best_match_score * 100 ) ;
+  //           // section.matchedUrl =res?.image?.data
+  //           // section.matchPercentage = Math.round(res?.best_match_score * 100 ) ;
            
             
-            completedSections++;
-            if (completedSections === totalSections) {
-              this.uploading = false;
-              this.message.success('Image matching completed');
-            }
-          },          
-          error: (err) => {
+  //           completedSections++;
+  //           if (completedSections === totalSections) {
+  //             this.uploading = false;
+  //             this.message.success('Image matching completed');
+  //           }
+  //         },          
+  //         error: (err) => {
             
-            this.message.error(
-              `Matching failed for section: ${section.sectionName}`
-            );
-            completedSections++;
-            if (completedSections === totalSections) {
-              this.uploading = false;
-            }
-          },
-        });
-    });
+  //           this.message.error(
+  //             `Matching failed for section: ${section.sectionName}`
+  //           );
+  //           completedSections++;
+  //           if (completedSections === totalSections) {
+  //             this.uploading = false;
+  //           }
+  //         },
+  //       });
+  //   });
 
     
+  // }
+
+//   matchAllSections(): void {
+//   if (!this.batchIds.length) {
+//     this.message.warning('Please upload images first.');
+//     return;
+//   }
+
+//   this.shipData.forEach((section) => {
+//     this.matchImages(section);
+//   });
+// }
+
+//  matchImages(section?: any): void {
+//   console.log('batchIds', this.batchIds);
+//     if (!this.batchIds.length) {
+//       alert('Please upload images first.');
+//       return;
+//     }
+
+//     this.uploading = true;
+
+//     const requests = this.batchIds.map((batchId) => {
+//       const params = {
+//         batch_id: batchId,
+//         question: section.sectionName,
+//         sample_image_urls: section.downloadImageLinks,
+//         min_similarity: 0.5,
+//         top_k: 3,
+//       };
+
+//       return this.http.post(`${this.apiUrl}/query/`, params);
+//     });
+
+//     forkJoin(requests).subscribe({
+//       next: (responses: any[]) => {
+//         const allMatches = responses.flat();
+//         section.matchResults = allMatches;
+//         this.uploading = false;
+//       },
+//       error: (err) => {
+//         console.error('Matching failed:', err);
+//         this.uploading = false;
+//       },
+//     });
+//   }
+
+matchAllSections(): void {
+  if (!this.batchIds.length) {
+    this.message.warning('Please upload images first.');
+    return;
   }
+
+  const matchObservables = this.shipData.map(section => this.matchImages(section));
+
+  forkJoin(matchObservables).subscribe(() => {
+    this.message.success('All image matches retrieved.');
+  });
+}
+
+
+matchImages(section: any): Observable<any> {
+  const requests = this.batchIds.map((batchId: string) => {
+    const body = {
+      batch_id: batchId,
+      question: section.sectionName,
+      sample_image_urls: section.downloadImageLinks,
+      min_similarity: 0.5,
+      top_k: 3
+    };
+
+    return this.http.post(`${this.apiUrl}/query/`, body).pipe(
+      map((res: any) => res?.images?.results || []),
+      catchError(() => of([])) // Continue even if one request fails
+    );
+  });
+
+  return forkJoin(requests).pipe(
+    map((resultsArrays: any[][]) => {
+      const allMatches = resultsArrays.flat(); // flatten all results from 9 requests
+
+      // Deduplicate by image_id
+      const uniqueMap = new Map();
+      for (const item of allMatches) {
+        if (!uniqueMap.has(item.image_id)) {
+          uniqueMap.set(item.image_id, item);
+        }
+      }
+
+      // Convert back to array, sort by similarity_score desc, and keep top 3
+      const topMatches = Array.from(uniqueMap.values())
+        .sort((a, b) => b.similarity_score - a.similarity_score)
+        .slice(0, 3)
+        .map(match => ({
+          data: match.data,
+          similarity_score: Math.round(match.similarity_score * 100), // convert to %
+          filename: match.filename
+        }));
+
+      section.matchArr = topMatches;
+      return section;
+    })
+  );
+}
+
+
+
+
+
 
   removeFile(file: NzUploadFile): void {
     this.fileList = this.fileList.filter((item) => item !== file);

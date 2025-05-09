@@ -37,6 +37,7 @@
             Uploading Batch: {{ uploadStatus.currentBatch }}/{{
               uploadStatus.totalBatches
             }}
+            
           </p>
         </div>
         <nz-progress
@@ -97,8 +98,8 @@
       nz-button
       nzType="primary"
       [nzSize]="'large'"
-      (click)="matchAllSections()"
-      [disabled]="!batchId || uploading"
+      (click)="matchImages()"
+      
       [nzLoading]="uploading"
       class="match-button"
     >

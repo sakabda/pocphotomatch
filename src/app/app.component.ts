@@ -135,118 +135,14 @@ export class AppComponent {
     }, 0);
   }
 
-  // private uploadBatch(
-  //   files: NzUploadFile[],
-  //   batchNumber: number,
-  //   totalBatches: number
-  // ): Observable<any> {
-  //   const formData = new FormData();
-  //   files.forEach((file) => {
-  //     if (file.originFileObj) {
-  //       formData.append('files', file.originFileObj);
-  //     }
-  //   });
-
-  //   const batchInfo: any = {
-  //     uploadDate: new Date().toISOString(),
-  //     totalFiles: files.length,
-  //     name: `Ship Images Batch ${batchNumber + 1}/${totalBatches}`,
-  //     description: `Part ${batchNumber + 1} of ${totalBatches} total batches`,
-  //   };
-
-  //   formData.append(
-  //     'batch_info',
-  //     new Blob([JSON.stringify(batchInfo)], { type: 'application/json' })
-  //   );
-
-  //   const endpoint =
-  //     batchNumber === 0
-  //       ? `${this.apiUrl}/upload_images/`
-  //       : `${this.apiUrl}/append_to_batch/?batch_id=${this.batchId}`;
-
-  //   return this.http
-  //     .post(endpoint, formData, {
-  //       reportProgress: true,
-  //       observe: 'events',
-  //     })
-  //     .pipe(
-  //       map((event) => {
-  //         if (event.type === HttpEventType.UploadProgress && event.total) {
-  //           const batchProgress = Math.round((100 * event.loaded) / event.total);
-  //           const overallProgress = Math.round((batchNumber * 100 + batchProgress) / totalBatches);
-  //           this.uploadStatus.progress = overallProgress;
-  //         } else if (event.type === HttpEventType.Response) {
-  //           if (event.body) {
-  //             const response = event.body as BatchResponse;
-  //             if (!this.batchId && response.batch_id) {
-  //               this.batchId = response.batch_id;
-  //             }
-  //             this.uploadStatus.processedFiles += files.length;
-  //             this.uploadStatus.currentBatch = batchNumber + 1;
-  //             return response;
-  //           }
-  //         }
-  //         return null;
-  //       }),
-  //       catchError((error) => {
-  //         this.message.error(`Batch ${batchNumber + 1} upload error: ${error.message}`);
-  //         return of(null);
-  //       })
-  //     );
-  // }
-
-  // private uploadBatch(
-  //   files: NzUploadFile[],
-  //   batchNumber: number,
-  //   totalBatches: number
-  // ): Observable<any> {
-  //   const formData = new FormData();
-  //   files.forEach((file) => {
-  //     if (file.originFileObj) {
-  //       formData.append('files', file.originFileObj);
-  //     }
-  //   });
-
-  //   const batchInfo = {
-  //     uploadDate: new Date().toISOString(),
-  //     totalFiles: files.length,
-  //     name: `Ship Images Batch ${batchNumber + 1}/${totalBatches}`,
-  //     description: `Part ${batchNumber + 1} of ${totalBatches} total batches`,
-  //   };
-
-  //   formData.append(
-  //     'batch_info',
-  //     new Blob([JSON.stringify(batchInfo)], { type: 'application/json' })
-  //   );
-
-  //   const endpoint =
-  //     batchNumber === 0
-  //       ? `${this.apiUrl}/upload_images/`
-  //       : `${this.apiUrl}/append_to_batch/?batch_id=${this.batchId}`;
-
-  //   return this.http.post(endpoint, formData).pipe(
-  //     switchMap((res: any) => {
-  //       if (batchNumber === 0 && res?.batch_id) {
-  //         this.batchId = res.batch_id;
-  //       }
-
-  //       this.uploadStatus.processedFiles += files.length;
-  //       this.uploadStatus.currentBatch = batchNumber + 1;
-
-  //       return of(res); // next batches don’t poll
-  //     }),
-  //     catchError((error) => {
-  //       this.message.error(
-  //         `Batch ${batchNumber + 1} upload error: ${error.message}`
-  //       );
-  //       return of(null);
-  //     })
-  //   );
-  // }
-
   percentageOfUpload(): number {
-    if(this.uploadStatus && this.batchId){
-      return Number(((this.uploadStatus.currentBatch/this.uploadStatus.totalBatches)*100).toFixed(0));
+    if (this.uploadStatus && this.batchId) {
+      return Number(
+        (
+          (this.uploadStatus.currentBatch / this.uploadStatus.totalBatches) *
+          100
+        ).toFixed(0)
+      );
     }
     return 0;
   }
@@ -366,7 +262,6 @@ export class AppComponent {
   private handleUploadError(): void {
     this.uploading = false;
     this.uploadStatus.status = 'error';
-    //this.message.error('Upload failed');
   }
 
   matchImages(): void {
@@ -403,6 +298,7 @@ export class AppComponent {
           if (completedSections === totalSections) {
             this.uploading = false;
             this.message.success('Image matching completed');
+            this.deleteBatchId();
           }
         },
         error: () => {
@@ -423,10 +319,11 @@ export class AppComponent {
   }
 
   ngOnDestroy(): void {
-    const params = {
-      params: new HttpParams().set('batch_id', this.batchId || ''),
-    };
-    this.http.get(`${this.apiUrl}/delete_batch/`, params).subscribe({
+    this.deleteBatchId();
+  }
+  deleteBatchId(): void {
+    const body = { batch_id: this.batchId };
+    this.http.delete(`${this.apiUrl}/delete_batch/`, { body }).subscribe({
       next: () => {},
       error: () => {},
     });

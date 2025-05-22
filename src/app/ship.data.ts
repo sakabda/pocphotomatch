@@ -45,6 +45,7 @@ matchArr: [] as any[],
       "https://dsir-bucket.s3.ap-south-1.amazonaws.com/inspector-sheet/2d3c479c-ac50-4d9d-997b-16d49d2e83d2.JPG",
       // "https://dsir-bucket.s3.ap-south-1.amazonaws.com/inspector-sheet/eed8a735-b127-42d1-8dbb-12421a3d2e0a.jpg",
       //  "https://dsir-bucket.s3.ap-south-1.amazonaws.com/inspector-sheet/25f6e041-01dd-4ff6-b9a8-87e336ace9e9.jpg"
+      "images/1.JPG"
       
     ],
 "matchedUrl": "",
@@ -71,6 +72,7 @@ matchArr: [] as any[],
       // "https://dsir-bucket.s3.ap-south-1.amazonaws.com/inspector-sheet/fdbc017b-12ce-4c7f-9871-bf92ae46d9d1.JPG",
       "https://dsir-bucket.s3.ap-south-1.amazonaws.com/inspector-sheet/55b55296-bd86-43b9-962e-8a15c1236d8c.jpg",
       // "https://dsir-bucket.s3.ap-south-1.amazonaws.com/inspector-sheet/2008df85-64b2-4ba8-b7b6-6c3401716710.jpg"
+      "images/2.JPG"
     ],
 "matchedUrl": "",
 
@@ -253,6 +255,7 @@ matchArr: [] as any[],
       // "https://dsir-bucket.s3.ap-south-1.amazonaws.com/inspector-sheet/2cf6257f-f2a4-40ca-b594-7958a68ae26b.JPG",
       // "https://dsir-bucket.s3.ap-south-1.amazonaws.com/inspector-sheet/4e85200c-6481-47fd-a302-53c0b300d81e.jpg",
       // "https://dsir-bucket.s3.ap-south-1.amazonaws.com/inspector-sheet/31931e06-cb4a-476c-b8fb-66e6bd3c1ba5.jpg"
+      "images/3.JPG"
     ],
 "matchedUrl": "",
 

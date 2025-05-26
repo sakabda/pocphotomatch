@@ -241,7 +241,7 @@ export class AppComponent {
   }
 
   private pollUntilCompleted(batchId: string): Observable<any> {
-    return interval(3000).pipe(
+    return interval(1000).pipe(
       switchMap(() =>
         this.http.get<{ status: string }>(
           `${this.apiUrl}/batch_status/${batchId}`

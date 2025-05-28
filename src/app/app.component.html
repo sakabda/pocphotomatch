@@ -3,6 +3,7 @@
   <div class="upload-section">
     <div class="upload-card">
       <h2>Ship Images Upload</h2>
+      
       <button
         #uploadButton
         nz-button
@@ -10,7 +11,7 @@
         [nzSize]="'large'"
         [nzLoading]="selectLoading"
         (click)="uploadInput.click()"
-        [disabled]="uploading"
+        [disabled]="selectLoading  || uploadStatus.status === 'completed' || uploadStatus.status === 'uploading' "
         class="upload-button"
       >
         <i nz-icon nzType="upload"></i>
@@ -27,35 +28,42 @@
         multiple
         accept="image/*"
         (change)="handleUpload($event)"
-      />
+      /> 
 
       <!-- Upload Status -->
       <div class="status-section" *ngIf="uploadStatus.status !== 'pending'">
         <h3>Upload Status</h3>
-        <div class="batch-info" *ngIf="uploadStatus.status === 'uploading'">
-          <p>
-            Uploading Batch: {{ uploadStatus.currentBatch }}/{{
-              uploadStatus.totalBatches
-            }}
-            
-          </p>
-        </div>
-        <nz-progress
-          [nzPercent]="percentageOfUpload()"
-          [nzStrokeWidth]="8"
-        ></nz-progress>
+        <div class="status-content">
+          <div class="status-badge" [ngClass]="uploadStatus.status">
+            <i nz-icon 
+               [nzType]="uploadStatus.status === 'completed' ? 'check-circle' : 
+                         uploadStatus.status === 'error' ? 'close-circle' : 
+                         'loading'"
+               [nzSpin]="uploadStatus.status === 'uploading' || uploadStatus.status === 'processing'">
+            </i>
+            {{ uploadStatus.status | titlecase }}
+          </div>
+          
+          <div class="batch-info" *ngIf="uploadStatus.status === 'uploading'">
+            <div class="batch-counter">
+              <span class="counter-label">Current Batch:</span>
+              <span class="counter-value">{{ uploadStatus.currentBatch }}/{{ uploadStatus.totalBatches }}</span>
+            </div>
+            <div class="files-counter">
+              <span class="counter-label">Files Processed:</span>
+              <span class="counter-value">{{ uploadStatus.processedFiles }}/{{ uploadStatus.totalFiles }}</span>
+            </div>
+          </div>
 
-        <div class="status-info">
-          <p>Status: {{ uploadStatus.status | titlecase }}</p>
-          <!-- <p
-            *ngIf="
-              uploadStatus.status === 'processing' ||
-              uploadStatus.status === 'uploading'
-            "
-          >
-            Processed: {{ uploadStatus.processedFiles }} /
-            {{ uploadStatus.totalFiles }}
-          </p> -->
+          <div class="progress-wrapper">
+            <nz-progress
+              [nzPercent]="percentageOfUpload()"
+              [nzStrokeWidth]="8"
+              [nzStatus]="uploadStatus.status === 'error' ? 'exception' : 
+                         uploadStatus.status === 'completed' ? 'success' : 'active'"
+              [nzShowInfo]="true"
+            ></nz-progress>
+          </div>
         </div>
       </div>
 
@@ -68,7 +76,7 @@
             nzType="primary"
             [nzLoading]="uploading"
             (click)="uploadFiles()"
-            [disabled]="uploading || uploadStatus.status === 'processing'"
+            [disabled]="uploading   || uploadStatus.status === 'completed' || uploadStatus.status === 'uploading'"
             class="submit-button"
           >
             Start Upload

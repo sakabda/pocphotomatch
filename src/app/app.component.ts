@@ -128,11 +128,12 @@ export class AppComponent {
             this.fileList = this.fileList.slice(0, 1000);
           }
 
-          this.selectLoading = false;
+        
           this.cdr.detectChanges();
         }
       });
-    }, 0);
+      this.selectLoading = false;
+    }, 500);
   }
 
   percentageOfUpload(): number {
